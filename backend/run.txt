@@ -1,0 +1,6 @@
+                                                                         export COUCHDB_URL=http://localhost:5984
+                                                                         export COUCHDB_USER=admin
+                                                                         export COUCHDB_PASSWORD=abc123
+                                                                         export JWT_SECRET=$(openssl rand -hex 32)
+                                                                         export BIND_ADDR=0.0.0.0:8090
+                                                                         cargo run

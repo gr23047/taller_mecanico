@@ -1,0 +1,39 @@
+services:
+  couchdb:
+    image: couchdb:3
+    container_name: taller_couchdb
+    restart: unless-stopped
+    environment:
+      COUCHDB_USER: ${COUCHDB_USER}
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
+    ports:
+      # Puerto del host distinto al 5984 para no chocar con tu CouchDB nativo
+      - "${COUCHDB_HOST_PORT:-5985}:5984"
+    volumes:
+      - couchdb_data:/opt/couchdb/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5984/_up"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: ./backend
+    container_name: taller_api
+    restart: unless-stopped
+    depends_on:
+      couchdb:
+        condition: service_healthy
+    environment:
+      COUCHDB_URL: http://couchdb:5984  # dentro de la red de Docker siempre es 5984
+      COUCHDB_USER: ${COUCHDB_USER}
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
+      COUCHDB_DB: taller
+      JWT_SECRET: ${JWT_SECRET}
+      BIND_ADDR: 0.0.0.0:8080
+      RUST_LOG: taller_api=info,tower_http=info
+    ports:
+      - "${API_HOST_PORT:-8090}:8080"
+
+volumes:
+  couchdb_data:
